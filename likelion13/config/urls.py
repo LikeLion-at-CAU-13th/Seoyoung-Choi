@@ -22,5 +22,5 @@ from posts.views import *
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('post/', include('posts.urls')),
-    path('category/', include('posts.urls')),
+    path('category/', include('categories.urls')),
 ]

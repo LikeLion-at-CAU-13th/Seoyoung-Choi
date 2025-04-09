@@ -7,8 +7,8 @@ import json
 
 # Create your views here.
 @require_http_methods(["GET"])
-def get_post_detail(request, id):
-    post = get_object_or_404(Post, pk=id)
+def get_post_detail(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
     post_detail_json = {
         "id" : post.id,
         "title" : post.title,
@@ -19,57 +19,42 @@ def get_post_detail(request, id):
     return JsonResponse({
         "status" : 200,
         "data": post_detail_json})
-def get_comment_detail(request, id):
-    comment = get_object_or_404(Comment, pk = id)
+def get_comment_detail(request, comment_id):
+    comment = get_object_or_404(Comment, pk = comment_id)
     comment_detail_json = {
         "author" : comment.author_name,
         "content" : comment.content,
     }
     return JsonResponse({
         "data": comment_detail_json})
-def get_commentsInposts_detail(request, id):
+def get_comments_in_posts_detail(request):
+    # 1. 쿼리 파라미터에서 post_id 받아오기
+    post_id = request.GET.get("post_id")
 
-	#post_id에 해당하는 전체 '댓글'을 조회
-	if request.method == "GET":
-		comment_all = Comment.objects.filter(post_id = id)
+    if not post_id:
+        return JsonResponse({
+            "status": 400,
+            "message": "post_id 쿼리 파라미터가 필요합니다."
+        }, status=400)
 
-		#각 데이터를 Json형식으로 변환하여 list에 저장하기
-		comment_json_all = []
+    # 2. 필터링 후 댓글 조회
+    comment_all = Comment.objects.filter(post_id=post_id)
 
-		for comment in comment_all :
-			comment_json = {
-				"author" : comment.author_name,
-				"content" : comment.content,
-			}
-			comment_json_all.append(comment_json)
+    # 3. JSON 변환
+    comment_json_all = []
+    for comment in comment_all:
+        comment_json = {
+            "author": comment.author_name,
+            "content": comment.content,
+        }
+        comment_json_all.append(comment_json)
 
-		return JsonResponse({
-			'status' : 200,
-			'message' : '해당 게시글 전체 댓글 조회 성공',
-			'data' : comment_json_all
-		})
-def get_postsIncategoriesOrdered_detail(request,id):
+    return JsonResponse({
+        'status': 200,
+        'message': '해당 게시글 전체 댓글 조회 성공',
+        'data': comment_json_all
+    })
 
-	#category_id에 해당하는 전체 'post'를 조회
-	if request.method == "GET":
-		postIncategory_all = CategoryLink.objects.filter(category_id = id).order_by('created')
-
-		#각 데이터를 Json형식으로 변환하여 list에 저장하기
-		postIncategory_json_all = []
-
-		for postIncategory in postIncategory_all :
-			postIncategory_json = {
-				"postId" : postIncategory.post.id,
-				"title" : postIncategory.post.title,
-				"content" : postIncategory.post.content,
-			}
-			postIncategory_json_all.append(postIncategory_json)
-
-		return JsonResponse({
-			'status' : 200,
-			'message' : '해당 카테고리 전체 게시글 조회 성공',
-			'data' : postIncategory_json_all
-		})
 
 @require_http_methods(["GET","PATCH","DELETE"])
 def post_detail(request, post_id):
