@@ -79,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.logsmiddlewares.LogRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -168,3 +169,43 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000", #프론트엔드 리액트 포트가 3000이래
 ]
+
+
+#log 관련 코드
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # 쟝고의 기본 로그도 유지하면서 내가 추가한 로그도 같이 씀
+    'formatters': {
+        'default': {
+            'format': '[{asctime}] [{levelname}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': { #핸들러 : 로그를 '파일에 저장/콘솔에 출력/이메일로 보냄' 등을 지정
+        'file': {  # 모든 요청 로깅할 로그 파일
+            'level': 'INFO', 
+            'class': 'logging.FileHandler', #로그를 파일에 저장하는 핸들러 종류
+            'filename': os.path.join(BASE_DIR, 'logs/requests.log'), #requests.log 라는 파일에 정의한 포맷으로 저장함
+            'formatter': 'default',
+        },
+        'error_file': {  # WARNING 이상 로그만 저장할 파일
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/errors.log'),
+            'formatter': 'default',
+        },
+        'console': {  # 터미널 출력용 (선택)
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+    },
+    'loggers': {
+        'django.request': {  # HTTP 요청 관련 로그는 여기로
+            'handlers': ['file', 'error_file', 'console'],
+            'level': 'INFO',
+            'propagate': True, #부모 로거에게 로그를 전달하는 옵션
+        },
+    },
+}
