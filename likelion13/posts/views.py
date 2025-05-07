@@ -5,6 +5,14 @@ from django.views.decorators.http import require_http_methods # 추가
 from .models import * # 추가
 import json
 
+from .serializers import PostSerializer,CommentSerializer
+
+# APIView를 사용하기 위해 import
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.http import Http404
+
 # Create your views here.
 @require_http_methods(["GET"])
 def get_post_detail(request, post_id):
@@ -176,3 +184,63 @@ def post_list(request):
             'message': '게시글 목록 조회 성공',
             'data': post_json_all
         })
+    
+class PostList(APIView):
+    def post(self, request, format=None):
+        serializer = PostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request, format=None):
+        posts = Post.objects.all()
+		# 많은 post들을 받아오려면 (many=True) 써줘야 한다!
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+    
+class PostDetail(APIView):
+    def get(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        serializer = PostSerializer(post)
+        return Response(serializer.data)
+    
+    def put(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        serializer = PostSerializer(post, data=request.data)
+        if serializer.is_valid(): # update이니까 유효성 검사 필요
+            serializer.save() #객체 생성 or 업데이트
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        post.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class CommentDetail(APIView):
+    def get(self, request, comment_id):
+        comment = get_object_or_404(Comment, pk= comment_id)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
+    
+    def delete(self,request,comment_id):
+        comment = get_object_or_404(Comment, id = comment_id)
+        comment.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)
+
+class CommentList(APIView):
+    def post(self,request,format=None):
+        serializer = CommentSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        post_id = request.GET.get("post_id")
+        if not post_id:
+            return Response(status = status.HTTP_400_BAD_REQUEST)
+        comments = Comment.objects.filter(post_id = post_id)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
