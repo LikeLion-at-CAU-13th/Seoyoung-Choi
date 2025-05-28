@@ -13,6 +13,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 
+#로그아웃
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+#permission 과제
+from config.permissions import *
+
 # Create your views here.
 @require_http_methods(["GET"])
 def get_post_detail(request, post_id):
@@ -186,6 +191,7 @@ def post_list(request):
         })
     
 class PostList(APIView):
+    permission_classes = [TimePossible]
     def post(self, request, format=None):
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
@@ -200,6 +206,8 @@ class PostList(APIView):
         return Response(serializer.data)
     
 class PostDetail(APIView):
+    permission_classes = [TimePossible] # TimePossible에서 IsAuthen~~도 검사함.
+
     def get(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
         serializer = PostSerializer(post)
@@ -207,6 +215,9 @@ class PostDetail(APIView):
     
     def put(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+        #권한 검사
+        if not WriterPossible().has_object_permission(request,self,post):
+            return Response({"detail" : "수정 권한 없음"}, status = 403)
         serializer = PostSerializer(post, data=request.data)
         if serializer.is_valid(): # update이니까 유효성 검사 필요
             serializer.save() #객체 생성 or 업데이트
@@ -215,10 +226,14 @@ class PostDetail(APIView):
     
     def delete(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+        #권한 검사
+        if not WriterPossible().has_object_permission(request,self,post):
+            return Response({"detail" : "삭제 권한 없음"}, status = 403)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CommentDetail(APIView):
+    permission_classes = [TimePossible]
     def get(self, request, comment_id):
         comment = get_object_or_404(Comment, pk= comment_id)
         serializer = CommentSerializer(comment)
@@ -226,10 +241,14 @@ class CommentDetail(APIView):
     
     def delete(self,request,comment_id):
         comment = get_object_or_404(Comment, id = comment_id)
+        #권한 검사
+        if not WriterPossible().has_object_permission(request,self,comment):
+            return Response({"detail" : "삭제 권한 없음"}, status = 403)
         comment.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
 
 class CommentList(APIView):
+    permission_classes = [TimePossible]
     def post(self,request,format=None):
         serializer = CommentSerializer(data = request.data)
         if serializer.is_valid():
