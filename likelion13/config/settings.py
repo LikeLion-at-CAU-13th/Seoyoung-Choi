@@ -148,15 +148,25 @@ DB_PW = get_secret("DB_PW")
     #}
 #}
 # 12주차 - 원격 연결용
+#DATABASES = {
+	#'default': {
+		#'ENGINE': 'django.db.backends.mysql',
+		#'NAME': "likelion13th",
+		#'USER': "admin", # aws에서 만든 사용자명
+		#'PASSWORD': DB_PW, # 비밀번호는 secrets.json에 저장
+		#'HOST': "127.0.0.1",
+		#'PORT': '3307', # 터널에서 연결할 로컬 포트
+	#}
+#}
 DATABASES = {
-	'default': {
-		'ENGINE': 'django.db.backends.mysql',
-		'NAME': "likelion13th",
-		'USER': "admin", # aws에서 만든 사용자명
-		'PASSWORD': DB_PW, # 비밀번호는 secrets.json에 저장
-		'HOST': "127.0.0.1",
-		'PORT': '3307', # 터널에서 연결할 로컬 포트
-	}
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'likelion13th',
+        'USER': 'admin',
+        'PASSWORD': DB_PW,
+        'HOST': 'likelion13th.cd4ycmacatcm.ap-northeast-2.rds.amazonaws.com',
+        'PORT': '3306',
+    }
 }
 #DB_PW 이거 지금 원격용으로 바꿈 (2로 시작하는거. )
 
