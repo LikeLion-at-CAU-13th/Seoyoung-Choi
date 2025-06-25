@@ -23,14 +23,6 @@ from rest_framework import permissions # 12주차
 from drf_yasg.views import get_schema_view # 12주차
 from drf_yasg import openapi # 12주차
 
-
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    path('post/', include('posts.urls')),
-    path('category/', include('categories.urls')),
-    path('account/', include('accounts.urls')),
-]
-
 # Swagger 설정
 schema_view = get_schema_view(
     openapi.Info(
@@ -45,8 +37,9 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("post/", include("posts.urls")),
-    path("account/", include("accounts.urls")),
+    path('post/', include('posts.urls')),
+    path('category/', include('categories.urls')),
+    path('account/', include('accounts.urls')),
     path("account/", include("allauth.urls")),
 
     #Swagger UI

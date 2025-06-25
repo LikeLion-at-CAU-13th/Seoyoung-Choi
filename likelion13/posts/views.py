@@ -29,6 +29,7 @@ from drf_yasg import openapi
 # 12주차 중복 업로드
 import uuid
 import os
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 @require_http_methods(["GET"])
@@ -319,6 +320,8 @@ class CommentList(APIView):
     
 # 12주차 - 이미지 API
 class ImageUploadView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
     @swagger_auto_schema(
         operation_summary="이미지 업로드",
         operation_description="이미지를 S3에 업로드하고 URL을 반환합니다.",
