@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 from .models import Post,Comment
+from .models import Image #12주차
 
 class PostSerializer(serializers.ModelSerializer):
 
@@ -17,3 +18,9 @@ class CommentSerializer(serializers.ModelSerializer):
   class Meta:
     model = Comment
     fields = "__all__"
+
+# 12주차 - 이미지 API
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = "__all__"
