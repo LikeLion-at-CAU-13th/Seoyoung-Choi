@@ -14,4 +14,6 @@ urlpatterns = [
     #Comment관련
     #path('comment/<int:comment_id>/',get_comment_detail),# Comment 단일 조회
     path('comment/<int:comment_id>/',CommentDetail.as_view()),
+
+    path('upload/', ImageUploadView.as_view(), name='image-upload'), # 12주차
 ]
