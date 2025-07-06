@@ -31,20 +31,40 @@ import uuid
 import os
 from rest_framework.parsers import MultiPartParser, FormParser
 
+# 14주차
+from config.custom_exceptions import *
+from config.custom_api_exceptions import *
+from datetime import datetime, timedelta
+
 # Create your views here.
 @require_http_methods(["GET"])
 def get_post_detail(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    post_detail_json = {
-        "id" : post.id,
-        "title" : post.title,
-        "content" : post.content,
-        "status" : post.status,
-        "user" : post.user.username,
-    }
-    return JsonResponse({
-        "status" : 200,
-        "data": post_detail_json})
+    #post = get_object_or_404(Post, pk=post_id)
+    #post_detail_json = {
+        #"id" : post.id,
+        #"title" : post.title,
+        #"content" : post.content,
+        #"status" : post.status,
+        #"user" : post.user.username,
+    #}
+    #return JsonResponse({
+        #"status" : 200,
+        #"data": post_detail_json})
+    try:
+        post = Post.objects.get(id=post_id)
+        post_detail_json = {
+            "id" : post.id,
+            "title" : post.title,
+            "content" : post.content,
+            "status" : post.status,
+            "user" : post.user.username
+        }
+        return JsonResponse({
+            "status" : 200,
+            "data": post_detail_json})
+    except Post.DoesNotExist:
+        raise PostNotFoundException
+    
 def get_comment_detail(request, comment_id):
     comment = get_object_or_404(Comment, pk = comment_id)
     comment_detail_json = {
@@ -212,11 +232,41 @@ class PostList(APIView):
         responses={201: PostSerializer, 400: "잘못된 요청"}
     )
     def post(self, request, format=None):
+        user_id = request.data.get("user")
+
+        # user_id가 없거나 잘못된 경우 처리
+        if not user_id:
+            return Response({
+                "success": False,
+                "error": {
+                    "code": "USER-ID-MISSING",
+                    "message": "user 필드가 필요합니다.",
+                    "status_code": 400
+                }
+            }, status=400)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({
+                "success": False,
+                "error": {
+                    "code": "USER-NOT-FOUND",
+                    "message": f"ID가 {user_id}인 사용자를 찾을 수 없습니다.",
+                    "status_code": 404
+                }
+            }, status=404)
+
+        # 하루 제한 검사
+        today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        if Post.objects.filter(user=user, created__gte=today_start).exists():
+            raise DailyPostLimitException()
+
+        # 직렬화 및 저장
         serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(user=user)  # ✅ 반드시 명시
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     @swagger_auto_schema(
         operation_summary="게시글 목록 조회",
         operation_description="모든 게시글을 조회합니다.",

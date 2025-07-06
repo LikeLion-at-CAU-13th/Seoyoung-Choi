@@ -98,6 +98,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'config.logsmiddlewares.LogRequestMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+    "config.middlewares.ExceptionHandlerMiddleware",  # 커스텀 예외 처리 미들웨어 추가
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -126,16 +127,16 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # 12주차 추가
 DB_PW = get_secret("DB_PW")
-#DATABASES = {
-    #'default': {
-       # 'ENGINE': 'django.db.backends.sqlite3',
-        #'NAME': BASE_DIR / 'db.sqlite3',
-       # 'USER': {'root'}, # root로 접속하여 DB를 만들었다면 'root'
-		#'PASSWORD': DB_PW, # 비밀번호는 secrets.json에 저장
-		#'HOST': 'localhost',
-		#'PORT': '3306',
-   # }
-#}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'USER': {'root'}, # root로 접속하여 DB를 만들었다면 'root'
+		'PASSWORD': DB_PW, # 비밀번호는 secrets.json에 저장
+		'HOST': 'localhost',
+		'PORT': '3306',
+    }
+}
 # 12주차에 한거
 #DATABASES = {
     #'default': {
@@ -158,16 +159,16 @@ DB_PW = get_secret("DB_PW")
 		#'PORT': '3307', # 터널에서 연결할 로컬 포트
 	#}
 #}
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'likelion13th',
-        'USER': 'admin',
-        'PASSWORD': DB_PW,
-        'HOST': 'likelion13th.cd4ycmacatcm.ap-northeast-2.rds.amazonaws.com',
-        'PORT': '3306',
-    }
-}
+#DATABASES = {
+    #'default': {
+        #'ENGINE': 'django.db.backends.mysql',
+        #'NAME': 'likelion13th',
+        #'USER': 'admin',
+        #'PASSWORD': DB_PW,
+        #'HOST': 'likelion13th.cd4ycmacatcm.ap-northeast-2.rds.amazonaws.com',
+        #'PORT': '3306',
+    #}
+#}
 #DB_PW 이거 지금 원격용으로 바꿈 (2로 시작하는거. )
 
 
@@ -273,6 +274,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    # 커스텀 예외 처리 함수 지정
+    'EXCEPTION_HANDLER': 'config.custom_exception_handler.custom_exception_handler',
 }
 
 REST_USE_JWT = True
